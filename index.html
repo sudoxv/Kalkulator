@@ -1,0 +1,1750 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Multifungsi</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* ============ TEMA ============ */
+        :root[data-theme="dark"] {
+            --bg: #1e2b3a;
+            --bg-2: #0f1722;
+            --panel: #1a2532;
+            --panel-2: #2a3a4b;
+            --panel-3: #35495e;
+            --border: #33475c;
+            --text: #ecf0f3;
+            --text-dim: #8ba0b3;
+            --text-mute: #6b7c8f;
+            --display-bg: #0b1219;
+            --accent: #d97706;
+            --accent-hover: #f59e0b;
+            --accent-soft: #78350f;
+            --accent-text: #fcd34d;
+            --eq-bg: #0d9488;
+            --eq-hover: #14b8a6;
+            --eq-shadow: #115e59;
+            --danger: #8f3a3a;
+            --danger-text: #ffd9d9;
+            --mem: #4d7c0f;
+            --mem-text: #d9f99d;
+            --shadow-key: #0b1219;
+        }
+
+        :root[data-theme="light"] {
+            --bg: #e8edf2;
+            --bg-2: #d5dee7;
+            --panel: #ffffff;
+            --panel-2: #f1f4f8;
+            --panel-3: #e2e8f0;
+            --border: #cbd5e1;
+            --text: #1e293b;
+            --text-dim: #64748b;
+            --text-mute: #94a3b8;
+            --display-bg: #f8fafc;
+            --accent: #b45309;
+            --accent-hover: #d97706;
+            --accent-soft: #fef3c7;
+            --accent-text: #92400e;
+            --eq-bg: #0f766e;
+            --eq-hover: #0d9488;
+            --eq-shadow: #134e4a;
+            --danger: #b91c1c;
+            --danger-text: #ffffff;
+            --mem: #4d7c0f;
+            --mem-text: #ffffff;
+            --shadow-key: #cbd5e1;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            transition: background-color 0.25s, color 0.25s, border-color 0.25s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        button, .topic-item, .toggle-advanced, .theme-toggle, .btn-calc {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+        }
+        button:focus, .topic-item:focus, .toggle-advanced:focus, .theme-toggle:focus, .btn-calc:focus {
+            outline: none;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            background: var(--bg);
+            padding: 16px;
+            color: var(--text);
+            transition: background 0.3s;
+            overflow-x: hidden;
+        }
+
+        .app {
+            width: 100%;
+            max-width: 460px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* ---------- TOP BAR ---------- */
+        .topbar {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 8px 14px;
+            color: var(--text);
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            height: auto;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        .theme-toggle:hover { background: var(--panel-2); }
+        .theme-toggle i { color: var(--accent); font-size: 0.9rem; }
+
+        /* ---------- KALKULATOR ---------- */
+        .calculator {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 18px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+        }
+
+        .display {
+            background: var(--display-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 14px 16px;
+            margin-bottom: 16px;
+            text-align: right;
+            position: relative;
+            min-height: 90px;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .display .history {
+            color: var(--text-mute);
+            font-size: 0.85rem;
+            min-height: 1.2rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .display .current {
+            color: var(--text);
+            font-size: 2.5rem;
+            font-weight: 500;
+            line-height: 1.15;
+            margin-top: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .display .mem-tag {
+            position: absolute;
+            top: 8px;
+            left: 14px;
+            font-size: 0.68rem;
+            color: var(--accent);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .mode-tag {
+            position: absolute;
+            top: 8px;
+            right: 14px;
+            font-size: 0.68rem;
+            color: var(--text-dim);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        /* ---------- TOMBOL KALKULATOR ---------- */
+        .keys {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 7px;
+        }
+
+        button {
+            border: none;
+            background: var(--panel-2);
+            color: var(--text);
+            font-size: 1rem;
+            font-weight: 500;
+            padding: 0;
+            height: 46px;
+            border-radius: 12px;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            box-shadow: 0 3px 0 var(--shadow-key), 0 5px 10px rgba(0, 0, 0, 0.25);
+            transition: transform 0.08s, box-shadow 0.08s, background 0.15s;
+            -webkit-tap-highlight-color: transparent;
+            min-width: 0;
+        }
+
+        button:active {
+            transform: translateY(3px);
+            box-shadow: 0 0 0 var(--shadow-key), 0 3px 6px rgba(0, 0, 0, 0.25);
+        }
+
+        button:hover { background: var(--panel-3); }
+
+        button.fn {
+            background: var(--panel-3);
+            color: var(--accent-text);
+            font-size: 0.85rem;
+        }
+        button.fn:hover { background: var(--panel-2); }
+
+        button.op {
+            background: var(--accent-soft);
+            color: var(--accent-text);
+            font-weight: 600;
+            font-size: 1.05rem;
+        }
+        button.op:hover { background: var(--accent); color: #fff; }
+
+        button.num {
+            background: var(--panel-2);
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+
+        button.eq {
+            background: var(--eq-bg);
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.15rem;
+            box-shadow: 0 3px 0 var(--eq-shadow), 0 5px 10px rgba(0, 0, 0, 0.25);
+        }
+        button.eq:hover { background: var(--eq-hover); }
+        button.eq:active { box-shadow: 0 0 0 var(--eq-shadow), 0 3px 6px rgba(0,0,0,0.25); }
+
+        button.ac {
+            background: var(--danger);
+            color: var(--danger-text);
+            font-weight: 700;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.3), 0 5px 10px rgba(0,0,0,0.25);
+        }
+        button.ac:hover { filter: brightness(1.15); }
+
+        button.del {
+            background: var(--danger);
+            color: var(--danger-text);
+            font-weight: 700;
+            font-size: 0.95rem;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.3), 0 5px 10px rgba(0,0,0,0.25);
+        }
+        button.del:hover { filter: brightness(1.15); }
+
+        button.mem {
+            background: var(--mem);
+            color: var(--mem-text);
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        button.mem:hover { filter: brightness(1.15); }
+
+        button.span2 { grid-column: span 2; }
+
+        /* ---------- TOMBOL BUKA FITUR LANJUTAN ---------- */
+        .toggle-advanced {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            color: var(--text);
+            font-size: 0.92rem;
+            font-weight: 600;
+            height: auto;
+            width: 100%;
+            box-shadow: 0 3px 0 var(--shadow-key), 0 5px 10px rgba(0, 0, 0, 0.2);
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        .toggle-advanced:hover { background: var(--panel-2); }
+
+        .toggle-advanced .left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .toggle-advanced .left i {
+            color: var(--accent);
+            font-size: 1rem;
+        }
+
+        .toggle-advanced .chev {
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            transition: transform 0.25s;
+        }
+        .toggle-advanced.open .chev { transform: rotate(180deg); }
+
+        /* ---------- PANEL FITUR LANJUTAN ---------- */
+        .advanced {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            overflow: hidden;
+            display: none;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+            width: 100%;
+            max-width: 100%;
+        }
+        .advanced.open { display: block; }
+
+        .adv-header {
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .adv-header h2 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 10px;
+        }
+
+        .search-wrap {
+            position: relative;
+        }
+        .search-wrap i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            pointer-events: none;
+        }
+        .search-wrap input {
+            width: 100%;
+            background: var(--display-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            padding: 9px 12px 9px 34px;
+            font-size: 0.85rem;
+            outline: none;
+            box-sizing: border-box;
+        }
+        .search-wrap input:focus { border-color: var(--accent); }
+        .search-wrap input::placeholder { color: var(--text-mute); }
+
+        .topic-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 8px;
+            padding: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .topic-grid::-webkit-scrollbar { width: 6px; }
+        .topic-grid::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+        .topic-item {
+            background: var(--display-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 11px;
+            font-size: 0.76rem;
+            color: var(--text-dim);
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.15s;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            height: auto;
+            justify-content: flex-start;
+            align-items: flex-start;
+            line-height: 1.3;
+            box-shadow: none;
+            font-weight: 500;
+            -webkit-tap-highlight-color: transparent;
+            width: 100%;
+            box-sizing: border-box;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+        .topic-item:hover {
+            border-color: var(--accent);
+            color: var(--text);
+            background: var(--panel-2);
+        }
+        .topic-item.active {
+            border-color: var(--accent);
+            background: var(--accent-soft);
+            color: var(--text);
+        }
+        .topic-item .num {
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 0.68rem;
+        }
+
+        .topic-calc {
+            padding: 16px 18px;
+            border-top: 1px solid var(--border);
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .topic-calc h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text);
+        }
+        .topic-calc .desc {
+            font-size: 0.78rem;
+            color: var(--text-dim);
+            margin-bottom: 14px;
+            line-height: 1.4;
+        }
+
+        /* ====== FIX BUG: form field tidak keluar view ====== */
+        .field {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 9px;
+            width: 100%;
+            box-sizing: border-box;
+            flex-wrap: nowrap;
+        }
+        .field label {
+            font-size: 0.76rem;
+            color: var(--text-dim);
+            min-width: 80px;
+            max-width: 110px;
+            flex-shrink: 0;
+            word-break: break-word;
+        }
+        .field input, .field select {
+            flex: 1 1 0;
+            min-width: 0;
+            width: 100%;
+            background: var(--display-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            padding: 8px 10px;
+            font-size: 0.82rem;
+            outline: none;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+        .field input:focus, .field select:focus { border-color: var(--accent); }
+
+        .field-row {
+            display: flex;
+            gap: 6px;
+            flex: 1 1 0;
+            min-width: 0;
+            width: 100%;
+        }
+        .field-row input {
+            flex: 1 1 0;
+            min-width: 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .btn-calc {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 18px;
+            font-size: 0.83rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 6px;
+            height: auto;
+            box-shadow: 0 3px 0 var(--accent-soft), 0 5px 10px rgba(0,0,0,0.2);
+            -webkit-tap-highlight-color: transparent;
+            width: auto;
+            max-width: 100%;
+        }
+        .btn-calc:hover { background: var(--accent-hover); }
+        .btn-calc:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--accent-soft); }
+
+        .out {
+            margin-top: 14px;
+            background: var(--display-bg);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--accent);
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-size: 0.82rem;
+            color: var(--text);
+            line-height: 1.55;
+            min-height: 40px;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .out.err {
+            border-left-color: var(--danger);
+            color: var(--danger);
+        }
+        .out strong { color: var(--accent-text); font-weight: 700; }
+        :root[data-theme="light"] .out strong { color: var(--accent); }
+
+        .empty-hint {
+            padding: 30px 16px;
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.82rem;
+        }
+        .empty-hint i {
+            display: block;
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            opacity: 0.4;
+        }
+
+        /* ====== RESPONSIVE ====== */
+        @media (max-width: 480px) {
+            body { padding: 10px; }
+            .calculator { padding: 14px; border-radius: 20px; }
+            .display { min-height: 80px; padding: 12px 14px; }
+            .display .current { font-size: 2rem; }
+            button { height: 42px; font-size: 0.88rem; border-radius: 10px; }
+            button.num { font-size: 1rem; }
+            button.fn, button.mem { font-size: 0.7rem; }
+            button.mem { font-size: 0.68rem; }
+            .keys { gap: 6px; }
+
+            .advanced { border-radius: 18px; }
+            .adv-header { padding: 14px; }
+            .topic-grid { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 6px; padding: 12px; }
+            .topic-item { font-size: 0.72rem; padding: 9px 10px; }
+            .topic-calc { padding: 14px; }
+
+            /* field di mobile: label lebih kecil dan input full */
+            .field { gap: 6px; }
+            .field label { min-width: 64px; max-width: 80px; font-size: 0.7rem; }
+            .field input, .field select { font-size: 0.78rem; padding: 7px 8px; }
+            .field-row { gap: 4px; }
+        }
+
+        @media (max-width: 360px) {
+            .topic-grid { grid-template-columns: 1fr 1fr; }
+            .field label { min-width: 58px; font-size: 0.66rem; }
+            .field input, .field select { font-size: 0.74rem; padding: 6px 7px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+
+        <!-- TOPBAR: tema -->
+        <div class="topbar">
+            <button class="theme-toggle" id="themeToggle">
+                <i class="fa-solid fa-moon" id="themeIcon"></i>
+                <span id="themeLabel">Dark</span>
+            </button>
+        </div>
+
+        <!-- ============ KALKULATOR ============ -->
+        <div class="calculator">
+            <div class="display">
+                <div class="mem-tag" id="memTag"></div>
+                <div class="mode-tag" id="modeTag">DEG</div>
+                <div class="history" id="history"></div>
+                <div class="current" id="display">0</div>
+            </div>
+
+            <div class="keys" id="keys">
+                <!-- baris 1 -->
+                <button class="ac" data-action="clear">AC</button>
+                <button class="del" data-action="backspace" title="Hapus satu digit">
+                    <i class="fa-solid fa-delete-left"></i>
+                </button>
+                <button class="fn" data-action="openParen" title="Kurung buka">(</button>
+                <button class="fn" data-action="closeParen" title="Kurung tutup">)</button>
+                <button class="fn" data-action="percent" title="Persen">%</button>
+
+                <!-- baris 2 -->
+                <button class="mem" data-action="mc">MC</button>
+                <button class="mem" data-action="mr">MR</button>
+                <button class="mem" data-action="mplus">M+</button>
+                <button class="mem" data-action="mminus">M−</button>
+                <button class="fn" data-action="sqrt"><i class="fa-solid fa-square-root-variable"></i></button>
+
+                <!-- baris 3 -->
+                <button class="fn" data-action="pow2">x²</button>
+                <button class="fn" data-action="pow3">x³</button>
+                <button class="fn" data-action="powY">xʸ</button>
+                <button class="fn" data-action="inv">1/x</button>
+                <button class="fn" data-action="fact">n!</button>
+
+                <!-- baris 4 -->
+                <button class="fn" data-action="sin">sin</button>
+                <button class="fn" data-action="cos">cos</button>
+                <button class="fn" data-action="tan">tan</button>
+                <button class="fn" data-action="log">log</button>
+                <button class="fn" data-action="ln">ln</button>
+
+                <!-- baris 5 -->
+                <button class="op" data-action="divide"><i class="fa-solid fa-divide"></i></button>
+                <button class="op" data-action="multiply"><i class="fa-solid fa-xmark"></i></button>
+                <button class="op" data-action="subtract"><i class="fa-solid fa-minus"></i></button>
+                <button class="op" data-action="add"><i class="fa-solid fa-plus"></i></button>
+                <button class="fn" data-action="exp">eˣ</button>
+
+                <!-- baris 6 -->
+                <button class="num" data-digit="7">7</button>
+                <button class="num" data-digit="8">8</button>
+                <button class="num" data-digit="9">9</button>
+                <button class="fn" data-action="pi">π</button>
+                <button class="fn" data-action="euler">e</button>
+
+                <button class="num" data-digit="4">4</button>
+                <button class="num" data-digit="5">5</button>
+                <button class="num" data-digit="6">6</button>
+                <button class="fn" data-action="rand">Rnd</button>
+                <button class="fn" data-action="abs">|x|</button>
+
+                <button class="num" data-digit="1">1</button>
+                <button class="num" data-digit="2">2</button>
+                <button class="num" data-digit="3">3</button>
+                <button class="fn" data-action="deg" title="Mode derajat">deg</button>
+                <button class="fn" data-action="rad" title="Mode radian">rad</button>
+
+                <button class="num span2" data-digit="0">0</button>
+                <button class="num" data-action="decimal">,</button>
+                <button class="eq span2" data-action="equals">=</button>
+            </div>
+        </div>
+
+        <!-- ============ TOMBOL BUKA FITUR LANJUTAN ============ -->
+        <button class="toggle-advanced" id="toggleAdvanced">
+            <span class="left">
+                <i class="fa-solid fa-layer-group"></i>
+                <span>Fitur Lanjutan</span>
+            </span>
+            <i class="fa-solid fa-chevron-down chev"></i>
+        </button>
+
+        <!-- ============ PANEL FITUR LANJUTAN ============ -->
+        <div class="advanced" id="advancedPanel">
+            <div class="adv-header">
+                <h2>Pilih Topik</h2>
+                <div class="search-wrap">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="searchTopic" placeholder="Cari topik...">
+                </div>
+            </div>
+            <div class="topic-grid" id="topicGrid"></div>
+            <div id="topicCalc"></div>
+        </div>
+
+    </div>
+
+    <script>
+    /* ============================================================
+       0. THEME TOGGLE
+       ============================================================ */
+    (function() {
+        const root = document.documentElement;
+        const btn = document.getElementById('themeToggle');
+        const icon = document.getElementById('themeIcon');
+        const label = document.getElementById('themeLabel');
+
+        function applyTheme(t) {
+            root.setAttribute('data-theme', t);
+            if (t === 'dark') {
+                icon.className = 'fa-solid fa-moon';
+                label.textContent = 'Dark';
+            } else {
+                icon.className = 'fa-solid fa-sun';
+                label.textContent = 'Light';
+            }
+            try { localStorage.setItem('calc-theme', t); } catch(e) {}
+        }
+
+        let saved = 'dark';
+        try { saved = localStorage.getItem('calc-theme') || 'dark'; } catch(e) {}
+        applyTheme(saved);
+
+        btn.addEventListener('click', () => {
+            const now = root.getAttribute('data-theme');
+            applyTheme(now === 'dark' ? 'light' : 'dark');
+        });
+    })();
+
+    /* ============================================================
+       1. KALKULATOR DASAR
+       ============================================================ */
+    (function() {
+        let currentInput = '0';
+        let previousValue = null;
+        let activeOperator = null;
+        let waitingForOperand = false;
+        let historyText = '';
+        let memory = 0;
+        let hasMemory = false;
+        let isDegreeMode = true;
+
+        const displayEl = document.getElementById('display');
+        const historyEl = document.getElementById('history');
+        const memTagEl = document.getElementById('memTag');
+        const modeTagEl = document.getElementById('modeTag');
+        const keysEl = document.getElementById('keys');
+
+        function updateDisplay() {
+            displayEl.textContent = currentInput;
+            historyEl.textContent = historyText;
+            memTagEl.textContent = hasMemory ? 'M' : '';
+            modeTagEl.textContent = isDegreeMode ? 'DEG' : 'RAD';
+        }
+
+        function resetCalculator() {
+            currentInput = '0';
+            previousValue = null;
+            activeOperator = null;
+            waitingForOperand = false;
+            historyText = '';
+            updateDisplay();
+        }
+
+        function formatNumber(num) {
+            if (num === null || isNaN(num)) return '';
+            if (!isFinite(num)) return num > 0 ? '∞' : '-∞';
+            let str = num.toString();
+            if (str.includes('.')) str = parseFloat(num.toFixed(10)).toString();
+            if (str.length > 15 && !str.includes('e')) str = num.toExponential(6);
+            return str;
+        }
+
+        function inputDigit(d) {
+            if (waitingForOperand) {
+                currentInput = d;
+                waitingForOperand = false;
+            } else {
+                if (currentInput === '0' && d !== '0') currentInput = d;
+                else if (currentInput === '0' && d === '0') {}
+                else if (currentInput.replace('-','').replace('.','').length < 15) currentInput += d;
+            }
+            updateDisplay();
+        }
+
+        function inputDecimal() {
+            if (waitingForOperand) {
+                currentInput = '0.';
+                waitingForOperand = false;
+            } else if (!currentInput.includes('.')) {
+                currentInput += '.';
+            }
+            updateDisplay();
+        }
+
+        function toggleSign() {
+            if (currentInput === '0' || currentInput === 'Error') return;
+            currentInput = currentInput.startsWith('-') ? currentInput.slice(1) : '-' + currentInput;
+            updateDisplay();
+        }
+
+        function backspace() {
+            if (currentInput === 'Error') {
+                resetCalculator();
+                return;
+            }
+            if (waitingForOperand) {
+                if (activeOperator) {
+                    activeOperator = null;
+                    waitingForOperand = false;
+                    currentInput = formatNumber(previousValue);
+                    previousValue = null;
+                    historyText = '';
+                }
+                updateDisplay();
+                return;
+            }
+            if (currentInput.length > 1) {
+                currentInput = currentInput.slice(0, -1);
+                if (currentInput === '' || currentInput === '-') currentInput = '0';
+            } else {
+                currentInput = '0';
+            }
+            updateDisplay();
+        }
+
+        function inputPercent() {
+            const cur = parseFloat(currentInput);
+            if (isNaN(cur)) return;
+            let result;
+            if (previousValue !== null && activeOperator) {
+                if (activeOperator === '+' || activeOperator === '-') result = previousValue * cur / 100;
+                else result = cur / 100;
+            } else result = cur / 100;
+            currentInput = formatNumber(result);
+            updateDisplay();
+        }
+
+        function opSymbol(op) {
+            return { '+': '+', '-': '−', '*': '×', '/': '÷', '^': '^' }[op] || '';
+        }
+
+        function handleOperator(op) {
+            const val = parseFloat(currentInput);
+            if (isNaN(val)) return;
+
+            if (waitingForOperand && activeOperator) {
+                activeOperator = op;
+                historyText = `${formatNumber(previousValue)} ${opSymbol(op)}`;
+                updateDisplay();
+                return;
+            }
+
+            if (previousValue === null) previousValue = val;
+            else if (activeOperator) {
+                const r = compute(previousValue, val, activeOperator);
+                previousValue = r;
+                currentInput = formatNumber(r);
+            } else previousValue = val;
+
+            waitingForOperand = true;
+            activeOperator = op;
+            historyText = `${formatNumber(previousValue)} ${opSymbol(op)}`;
+            updateDisplay();
+        }
+
+        function compute(a, b, op) {
+            switch(op) {
+                case '+': return a + b;
+                case '-': return a - b;
+                case '*': return a * b;
+                case '/': return b === 0 ? NaN : a / b;
+                case '^': return Math.pow(a, b);
+                default: return b;
+            }
+        }
+
+        function handleEquals() {
+            const val = parseFloat(currentInput);
+            if (activeOperator && previousValue !== null) {
+                const r = compute(previousValue, val, activeOperator);
+                if (isNaN(r)) {
+                    currentInput = 'Error';
+                    historyText = `${formatNumber(previousValue)} ${opSymbol(activeOperator)} ${formatNumber(val)} =`;
+                    previousValue = null; activeOperator = null; waitingForOperand = true;
+                    updateDisplay();
+                    return;
+                }
+                historyText = `${formatNumber(previousValue)} ${opSymbol(activeOperator)} ${formatNumber(val)} =`;
+                currentInput = formatNumber(r);
+                previousValue = null; activeOperator = null; waitingForOperand = true;
+            } else {
+                historyText = `${formatNumber(val)} =`;
+                waitingForOperand = true;
+            }
+            updateDisplay();
+        }
+
+        function applyUnary(fn, label) {
+            const v = parseFloat(currentInput);
+            if (isNaN(v)) return;
+            let r;
+            try { r = fn(v); } catch(e) { r = NaN; }
+            currentInput = (isNaN(r) || !isFinite(r)) ? 'Error' : formatNumber(r);
+            historyText = `${label}(${formatNumber(v)})`;
+            waitingForOperand = true;
+            updateDisplay();
+        }
+
+        function toRad(v) { return isDegreeMode ? v * Math.PI / 180 : v; }
+
+        function factorial(n) {
+            if (n < 0 || !Number.isInteger(n)) return NaN;
+            if (n > 170) return Infinity;
+            let r = 1;
+            for (let i = 2; i <= n; i++) r *= i;
+            return r;
+        }
+
+        keysEl.addEventListener('click', e => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+
+            if (currentInput === 'Error' && !btn.classList.contains('ac') && btn.dataset.action !== 'mc' && btn.dataset.action !== 'backspace') {
+                resetCalculator();
+            }
+
+            if (btn.dataset.digit !== undefined) { inputDigit(btn.dataset.digit); return; }
+
+            const action = btn.dataset.action;
+            const val = parseFloat(currentInput);
+
+            switch(action) {
+                case 'clear': resetCalculator(); break;
+                case 'backspace': backspace(); break;
+                case 'sign': toggleSign(); break;
+                case 'percent': inputPercent(); break;
+                case 'decimal': inputDecimal(); break;
+                case 'add': handleOperator('+'); break;
+                case 'subtract': handleOperator('-'); break;
+                case 'multiply': handleOperator('*'); break;
+                case 'divide': handleOperator('/'); break;
+                case 'powY': handleOperator('^'); break;
+                case 'equals': handleEquals(); break;
+
+                case 'mc': memory = 0; hasMemory = false; historyText = 'MC'; updateDisplay(); break;
+                case 'mr': if (hasMemory) { currentInput = formatNumber(memory); waitingForOperand = true; historyText = 'MR'; updateDisplay(); } break;
+                case 'mplus': if (!isNaN(val)) { memory += val; hasMemory = true; historyText = 'M+'; updateDisplay(); } break;
+                case 'mminus': if (!isNaN(val)) { memory -= val; hasMemory = true; historyText = 'M−'; updateDisplay(); } break;
+
+                case 'sqrt': applyUnary(Math.sqrt, '√'); break;
+                case 'pow2': applyUnary(v => v*v, 'sqr'); break;
+                case 'pow3': applyUnary(v => v*v*v, 'cube'); break;
+                case 'inv': applyUnary(v => 1/v, '1/'); break;
+                case 'fact': applyUnary(factorial, 'fact'); break;
+                case 'sin': applyUnary(v => Math.sin(toRad(v)), 'sin'); break;
+                case 'cos': applyUnary(v => Math.cos(toRad(v)), 'cos'); break;
+                case 'tan': applyUnary(v => Math.tan(toRad(v)), 'tan'); break;
+                case 'log': applyUnary(Math.log10, 'log'); break;
+                case 'ln': applyUnary(Math.log, 'ln'); break;
+                case 'exp': applyUnary(Math.exp, 'e^'); break;
+                case 'abs': applyUnary(Math.abs, 'abs'); break;
+
+                case 'pi': currentInput = formatNumber(Math.PI); waitingForOperand = true; historyText = 'π'; updateDisplay(); break;
+                case 'euler': currentInput = formatNumber(Math.E); waitingForOperand = true; historyText = 'e'; updateDisplay(); break;
+                case 'rand': currentInput = formatNumber(Math.random()); waitingForOperand = true; historyText = 'Rnd'; updateDisplay(); break;
+
+                case 'deg': isDegreeMode = true; updateDisplay(); break;
+                case 'rad': isDegreeMode = false; updateDisplay(); break;
+
+                case 'openParen': case 'closeParen':
+                    historyText = action === 'openParen' ? '(' : ')';
+                    updateDisplay();
+                    break;
+            }
+        });
+
+        window.addEventListener('keydown', e => {
+            const k = e.key;
+            if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' ','Enter'].includes(k)) e.preventDefault();
+            if (currentInput === 'Error') {
+                if (['Escape','Delete'].includes(k) || k.toLowerCase() === 'c') resetCalculator();
+                return;
+            }
+            if (/^[0-9]$/.test(k)) { inputDigit(k); return; }
+            switch(k) {
+                case '.': case ',': inputDecimal(); break;
+                case '+': handleOperator('+'); break;
+                case '-': handleOperator('-'); break;
+                case '*': case 'x': case 'X': handleOperator('*'); break;
+                case '/': handleOperator('/'); break;
+                case 'Enter': case '=': e.preventDefault(); handleEquals(); break;
+                case 'Backspace': e.preventDefault(); backspace(); break;
+                case 'Escape': case 'Delete': case 'c': case 'C': resetCalculator(); break;
+                case '%': inputPercent(); break;
+            }
+        });
+
+        keysEl.addEventListener('contextmenu', e => e.preventDefault());
+        updateDisplay();
+    })();
+
+    /* ============================================================
+       2. PANEL FITUR LANJUTAN
+       ============================================================ */
+    (function() {
+        const TOPICS = [
+            { id:'bilangan', title:'Bilangan', desc:'Operasi hitung bilangan bulat.' },
+            { id:'pecahan', title:'Pecahan, Desimal, Persen', desc:'Konversi dan operasi pecahan.' },
+            { id:'kpkfpb', title:'KPK & FPB', desc:'Faktor dan kelipatan persekutuan.' },
+            { id:'pengukuran', title:'Pengukuran', desc:'Panjang, berat, waktu, sudut.' },
+            { id:'bangun', title:'Bangun Datar & Ruang', desc:'Keliling, luas, volume.' },
+            { id:'statdasar', title:'Statistika Dasar', desc:'Mean, median, modus.' },
+            { id:'pangkatakar', title:'Pangkat & Akar', desc:'Bilangan berpangkat dan akar.' },
+            { id:'aljabar', title:'Aljabar Dasar', desc:'Persamaan linear ax+b=c.' },
+            { id:'himpunan', title:'Himpunan', desc:'Irisan, gabungan, selisih.' },
+            { id:'perbandingan', title:'Perbandingan & Skala', desc:'Perbandingan senilai dan skala.' },
+            { id:'sosial', title:'Aritmetika Sosial', desc:'Untung-rugi, bunga, pajak.' },
+            { id:'garissudut', title:'Garis & Sudut', desc:'Konversi dan hubungan sudut.' },
+            { id:'segitiga', title:'Segitiga & Segiempat', desc:'Sifat, keliling, luas.' },
+            { id:'pythagoras', title:'Teorema Pythagoras', desc:'Sisi segitiga siku-siku.' },
+            { id:'relasifungsi', title:'Relasi & Fungsi', desc:'Evaluasi fungsi f(x).' },
+            { id:'persgaris', title:'Persamaan Garis Lurus', desc:'Gradien dan persamaan garis.' },
+            { id:'spldv', title:'SPLDV', desc:'Sistem persamaan linear dua variabel.' },
+            { id:'statpeluang', title:'Statistika & Peluang', desc:'Statistik dan peluang dasar.' },
+            { id:'eksplog', title:'Eksponen & Logaritma', desc:'Sifat eksponen dan logaritma.' },
+            { id:'kuadrat', title:'Persamaan Kuadrat', desc:'Akar dan diskriminan.' },
+            { id:'fungsikuadrat', title:'Fungsi Kuadrat', desc:'Titik puncak dan nilai.' },
+            { id:'sistemlinear', title:'Sistem Persamaan Linear', desc:'Sistem linear umum.' },
+            { id:'matriks', title:'Matriks', desc:'Determinan dan invers 2x2.' },
+            { id:'barisan', title:'Barisan & Deret', desc:'Aritmetika dan geometri.' },
+            { id:'trigonometri', title:'Trigonometri Dasar', desc:'Sin, cos, tan.' },
+            { id:'dimtiga', title:'Dimensi Tiga', desc:'Volume dan luas bangun ruang.' },
+            { id:'statlanjut', title:'Statistika Lanjutan', desc:'Simpangan baku dan variansi.' },
+            { id:'peluang', title:'Peluang', desc:'Permutasi dan kombinasi.' },
+            { id:'limit', title:'Limit Fungsi', desc:'Limit aljabar sederhana.' },
+            { id:'turunan', title:'Turunan', desc:'Diferensial dan aplikasinya.' },
+            { id:'integral', title:'Integral', desc:'Integral tak tentu.' },
+            { id:'proglinear', title:'Program Linear', desc:'Optimasi fungsi objektif.' },
+            { id:'vektor', title:'Vektor', desc:'Operasi vektor 2D.' },
+            { id:'transformasi', title:'Transformasi Geometri', desc:'Translasi, rotasi, refleksi.' },
+            { id:'kompinv', title:'Fungsi Komposisi & Invers', desc:'Komposisi dan invers fungsi.' },
+            { id:'iriskerucut', title:'Irisan Kerucut', desc:'Lingkaran, parabola, elips.' },
+            { id:'polinomial', title:'Polinomial', desc:'Evaluasi suku banyak.' },
+            { id:'triglanjut', title:'Trigonometri Lanjutan', desc:'Rumus sudut ganda.' },
+            { id:'barisanlanjut', title:'Barisan & Deret Lanjutan', desc:'Deret geometri tak hingga.' },
+            { id:'kalkuluslanjut', title:'Kalkulus Lanjutan', desc:'Turunan parsial sederhana.' }
+        ];
+
+        const gcd = (a,b) => { a=Math.abs(a); b=Math.abs(b); while(b){[a,b]=[b,a%b];} return a; };
+        const lcm = (a,b) => Math.abs(a*b)/gcd(a,b);
+        const fact = n => { if(n<0||!Number.isInteger(n)) return NaN; let r=1; for(let i=2;i<=n;i++) r*=i; return r; };
+        const d2r = d => d*Math.PI/180;
+        const fmt = n => { if(!isFinite(n)) return n>0?'∞':'-∞'; return parseFloat(n.toFixed(10)).toString(); };
+
+        function form(topic) {
+            const T = {
+                bilangan: () => `
+                    <div class="field"><label>Angka A</label><input type="number" step="any" id="f-a"></div>
+                    <div class="field"><label>Angka B</label><input type="number" step="any" id="f-b"></div>
+                    <button class="btn-calc" onclick="hitung('bilangan')">Hitung</button>
+                    <div class="out" id="out">Masukkan angka lalu klik Hitung.</div>`,
+                pecahan: () => `
+                    <div class="field"><label>Jenis</label><select id="f-jenis">
+                        <option value="desimal">Desimal → Persen & Pecahan</option>
+                        <option value="persen">Persen → Desimal & Pecahan</option>
+                        <option value="pecahan">Pecahan a/b → Desimal & Persen</option>
+                    </select></div>
+                    <div class="field"><label>Nilai</label><input type="number" step="any" id="f-val"></div>
+                    <div class="field"><label>Pembilang</label><input type="number" id="f-num"></div>
+                    <div class="field"><label>Penyebut</label><input type="number" id="f-den"></div>
+                    <button class="btn-calc" onclick="hitung('pecahan')">Konversi</button>
+                    <div class="out" id="out">Pilih jenis dan masukkan nilai.</div>`,
+                kpkfpb: () => `
+                    <div class="field"><label>Bilangan A</label><input type="number" id="f-a" placeholder="12"></div>
+                    <div class="field"><label>Bilangan B</label><input type="number" id="f-b" placeholder="18"></div>
+                    <button class="btn-calc" onclick="hitung('kpkfpb')">Hitung KPK & FPB</button>
+                    <div class="out" id="out">Masukkan dua bilangan positif.</div>`,
+                pengukuran: () => `
+                    <div class="field"><label>Nilai</label><input type="number" step="any" id="f-val" placeholder="1"></div>
+                    <div class="field"><label>Kategori</label><select id="f-kat">
+                        <option value="panjang">Panjang (meter)</option>
+                        <option value="berat">Berat (kilogram)</option>
+                        <option value="waktu">Waktu (detik)</option>
+                        <option value="sudut">Sudut (derajat)</option>
+                    </select></div>
+                    <div class="field"><label>Ke satuan</label><select id="f-ke">
+                        <option value="km">km</option><option value="m">m</option><option value="cm">cm</option><option value="mm">mm</option>
+                        <option value="kg">kg</option><option value="g">g</option><option value="mg">mg</option>
+                        <option value="jam">jam</option><option value="menit">menit</option><option value="detik">detik</option>
+                        <option value="rad">radian</option><option value="deg">derajat</option>
+                    </select></div>
+                    <button class="btn-calc" onclick="hitung('pengukuran')">Konversi</button>
+                    <div class="out" id="out">Pilih kategori dan satuan tujuan.</div>`,
+                bangun: () => `
+                    <div class="field"><label>Bangun</label><select id="f-jenis">
+                        <option value="persegi">Persegi (s)</option>
+                        <option value="pp">Persegi Panjang (p,l)</option>
+                        <option value="segitiga">Segitiga (a,t)</option>
+                        <option value="lingkaran">Lingkaran (r)</option>
+                        <option value="kubus">Kubus (s)</option>
+                        <option value="balok">Balok (p,l,t)</option>
+                        <option value="tabung">Tabung (r,t)</option>
+                    </select></div>
+                    <div class="field"><label>Dimensi 1</label><input type="number" step="any" id="f-d1"></div>
+                    <div class="field"><label>Dimensi 2</label><input type="number" step="any" id="f-d2"></div>
+                    <div class="field"><label>Dimensi 3</label><input type="number" step="any" id="f-d3"></div>
+                    <button class="btn-calc" onclick="hitung('bangun')">Hitung</button>
+                    <div class="out" id="out">Isi dimensi sesuai bangun.</div>`,
+                statdasar: () => `
+                    <div class="field"><label>Data</label><input type="text" id="f-data" placeholder="3,5,7,5,9"></div>
+                    <button class="btn-calc" onclick="hitung('statdasar')">Hitung</button>
+                    <div class="out" id="out">Pisahkan data dengan koma.</div>`,
+                pangkatakar: () => `
+                    <div class="field"><label>Basis</label><input type="number" step="any" id="f-basis" placeholder="2"></div>
+                    <div class="field"><label>Pangkat</label><input type="number" step="any" id="f-exp" placeholder="3"></div>
+                    <button class="btn-calc" onclick="hitung('pangkat')">Hitung Pangkat</button>
+                    <div class="field" style="margin-top:10px;"><label>Akar dari</label><input type="number" step="any" id="f-akar" placeholder="16"></div>
+                    <div class="field"><label>Derajat akar</label><input type="number" id="f-akarn" placeholder="2"></div>
+                    <button class="btn-calc" onclick="hitung('akar')">Hitung Akar</button>
+                    <div class="out" id="out">Hitung pangkat atau akar.</div>`,
+                aljabar: () => `
+                    <div class="field"><label>a</label><input type="number" step="any" id="f-a" placeholder="2"></div>
+                    <div class="field"><label>b</label><input type="number" step="any" id="f-b" placeholder="3"></div>
+                    <div class="field"><label>c</label><input type="number" step="any" id="f-c" placeholder="11"></div>
+                    <button class="btn-calc" onclick="hitung('aljabar')">Selesaikan ax+b=c</button>
+                    <div class="out" id="out">Masukkan koefisien.</div>`,
+                himpunan: () => `
+                    <div class="field"><label>Himpunan A</label><input type="text" id="f-a" placeholder="1,2,3,4"></div>
+                    <div class="field"><label>Himpunan B</label><input type="text" id="f-b" placeholder="3,4,5,6"></div>
+                    <button class="btn-calc" onclick="hitung('himpunan')">Hitung</button>
+                    <div class="out" id="out">Pisahkan elemen dengan koma.</div>`,
+                perbandingan: () => `
+                    <div class="field"><label>a : b</label><div class="field-row"><input type="number" id="f-a" placeholder="2"><input type="number" id="f-b" placeholder="3"></div></div>
+                    <div class="field"><label>c : ?</label><input type="number" id="f-c" placeholder="4"></div>
+                    <button class="btn-calc" onclick="hitung('perbandingan')">Hitung</button>
+                    <div class="out" id="out">Hitung perbandingan senilai.</div>`,
+                sosial: () => `
+                    <div class="field"><label>Harga beli</label><input type="number" step="any" id="f-beli" placeholder="100000"></div>
+                    <div class="field"><label>Harga jual</label><input type="number" step="any" id="f-jual" placeholder="120000"></div>
+                    <button class="btn-calc" onclick="hitung('untung')">Hitung Untung/Rugi</button>
+                    <div class="field" style="margin-top:10px;"><label>Modal</label><input type="number" step="any" id="f-modal" placeholder="1000000"></div>
+                    <div class="field"><label>Bunga %/th</label><input type="number" step="any" id="f-bunga" placeholder="5"></div>
+                    <div class="field"><label>Lama (th)</label><input type="number" step="any" id="f-tahun" placeholder="2"></div>
+                    <button class="btn-calc" onclick="hitung('bunga')">Hitung Bunga</button>
+                    <div class="out" id="out">Hitung untung/rugi atau bunga.</div>`,
+                garissudut: () => `
+                    <div class="field"><label>Sudut (°)</label><input type="number" step="any" id="f-deg" placeholder="45"></div>
+                    <button class="btn-calc" onclick="hitung('sudut')">Konversi ke Radian</button>
+                    <div class="out" id="out">Masukkan sudut dalam derajat.</div>`,
+                segitiga: () => `
+                    <div class="field"><label>Jenis</label><select id="f-jenis">
+                        <option value="segitiga">Segitiga (a,t,s1,s2)</option>
+                        <option value="persegi">Persegi (s)</option>
+                        <option value="pp">Persegi Panjang (p,l)</option>
+                        <option value="jajargenjang">Jajar Genjang (a,t,s)</option>
+                    </select></div>
+                    <div class="field"><label>Dimensi 1</label><input type="number" step="any" id="f-d1"></div>
+                    <div class="field"><label>Dimensi 2</label><input type="number" step="any" id="f-d2"></div>
+                    <div class="field"><label>Dimensi 3</label><input type="number" step="any" id="f-d3"></div>
+                    <button class="btn-calc" onclick="hitung('segitiga')">Hitung</button>
+                    <div class="out" id="out">Isi dimensi bangun.</div>`,
+                pythagoras: () => `
+                    <div class="field"><label>Sisi a</label><input type="number" step="any" id="f-a" placeholder="3"></div>
+                    <div class="field"><label>Sisi b</label><input type="number" step="any" id="f-b" placeholder="4"></div>
+                    <div class="field"><label>Cari</label><select id="f-cari">
+                        <option value="c">Sisi miring c</option>
+                        <option value="a">Sisi tegak a</option>
+                        <option value="b">Sisi tegak b</option>
+                    </select></div>
+                    <button class="btn-calc" onclick="hitung('pythagoras')">Hitung</button>
+                    <div class="out" id="out">Masukkan dua sisi yang diketahui.</div>`,
+                relasifungsi: () => `
+                    <div class="field"><label>a</label><input type="number" step="any" id="f-a" placeholder="2"></div>
+                    <div class="field"><label>b</label><input type="number" step="any" id="f-b" placeholder="3"></div>
+                    <div class="field"><label>x</label><input type="number" step="any" id="f-x" placeholder="5"></div>
+                    <button class="btn-calc" onclick="hitung('relasifungsi')">Hitung f(x)</button>
+                    <div class="out" id="out">f(x) = ax + b.</div>`,
+                persgaris: () => `
+                    <div class="field"><label>x1, y1</label><div class="field-row"><input type="number" step="any" id="f-x1" placeholder="1"><input type="number" step="any" id="f-y1" placeholder="2"></div></div>
+                    <div class="field"><label>x2, y2</label><div class="field-row"><input type="number" step="any" id="f-x2" placeholder="3"><input type="number" step="any" id="f-y2" placeholder="4"></div></div>
+                    <button class="btn-calc" onclick="hitung('persgaris')">Hitung</button>
+                    <div class="out" id="out">Hitung gradien dan persamaan garis.</div>`,
+                spldv: () => `
+                    <div class="field"><label>a1,b1,c1</label><div class="field-row"><input type="number" step="any" id="f-a1" placeholder="1"><input type="number" step="any" id="f-b1" placeholder="1"><input type="number" step="any" id="f-c1" placeholder="3"></div></div>
+                    <div class="field"><label>a2,b2,c2</label><div class="field-row"><input type="number" step="any" id="f-a2" placeholder="2"><input type="number" step="any" id="f-b2" placeholder="-1"><input type="number" step="any" id="f-c2" placeholder="0"></div></div>
+                    <button class="btn-calc" onclick="hitung('spldv')">Selesaikan</button>
+                    <div class="out" id="out">a1x + b1y = c1, a2x + b2y = c2.</div>`,
+                statpeluang: () => `
+                    <div class="field"><label>Data</label><input type="text" id="f-data" placeholder="3,5,7,5,9"></div>
+                    <button class="btn-calc" onclick="hitung('statdasar')">Hitung Statistik</button>
+                    <div class="field" style="margin-top:10px;"><label>n, total</label><div class="field-row"><input type="number" id="f-n" placeholder="3"><input type="number" id="f-total" placeholder="10"></div></div>
+                    <button class="btn-calc" onclick="hitung('peluangdasar')">Hitung Peluang</button>
+                    <div class="out" id="out">Hitung statistik atau peluang n/total.</div>`,
+                eksplog: () => `
+                    <div class="field"><label>Nilai</label><input type="number" step="any" id="f-val" placeholder="100"></div>
+                    <div class="field"><label>Basis log</label><input type="number" step="any" id="f-base" placeholder="10"></div>
+                    <button class="btn-calc" onclick="hitung('log')">Hitung Logaritma</button>
+                    <div class="field" style="margin-top:10px;"><label>Basis</label><input type="number" step="any" id="f-ebase" placeholder="2"></div>
+                    <div class="field"><label>Pangkat</label><input type="number" step="any" id="f-epow" placeholder="8"></div>
+                    <button class="btn-calc" onclick="hitung('eksponen')">Hitung Eksponen</button>
+                    <div class="out" id="out">Hitung logaritma atau eksponen.</div>`,
+                kuadrat: () => `
+                    <div class="field"><label>a</label><input type="number" step="any" id="f-a" placeholder="1"></div>
+                    <div class="field"><label>b</label><input type="number" step="any" id="f-b" placeholder="-5"></div>
+                    <div class="field"><label>c</label><input type="number" step="any" id="f-c" placeholder="6"></div>
+                    <button class="btn-calc" onclick="hitung('kuadrat')">Hitung Akar</button>
+                    <div class="out" id="out">ax² + bx + c = 0.</div>`,
+                fungsikuadrat: () => `
+                    <div class="field"><label>a,b,c</label><div class="field-row"><input type="number" step="any" id="f-a" placeholder="1"><input type="number" step="any" id="f-b" placeholder="-2"><input type="number" step="any" id="f-c" placeholder="1"></div></div>
+                    <div class="field"><label>x</label><input type="number" step="any" id="f-x" placeholder="2"></div>
+                    <button class="btn-calc" onclick="hitung('fungsikuadrat')">Hitung</button>
+                    <div class="out" id="out">Nilai fungsi dan titik puncak.</div>`,
+                sistemlinear: () => `
+                    <div class="field"><label>a1,b1,c1</label><div class="field-row"><input type="number" step="any" id="f-a1" placeholder="1"><input type="number" step="any" id="f-b1" placeholder="1"><input type="number" step="any" id="f-c1" placeholder="3"></div></div>
+                    <div class="field"><label>a2,b2,c2</label><div class="field-row"><input type="number" step="any" id="f-a2" placeholder="2"><input type="number" step="any" id="f-b2" placeholder="-1"><input type="number" step="any" id="f-c2" placeholder="0"></div></div>
+                    <button class="btn-calc" onclick="hitung('spldv')">Selesaikan</button>
+                    <div class="out" id="out">Sistem dua variabel.</div>`,
+                matriks: () => `
+                    <div class="field"><label>a, b</label><div class="field-row"><input type="number" step="any" id="f-a" placeholder="1"><input type="number" step="any" id="f-b" placeholder="2"></div></div>
+                    <div class="field"><label>c, d</label><div class="field-row"><input type="number" step="any" id="f-c" placeholder="3"><input type="number" step="any" id="f-d" placeholder="4"></div></div>
+                    <button class="btn-calc" onclick="hitung('matriks')">Hitung</button>
+                    <div class="out" id="out">Matriks 2x2 [[a,b],[c,d]].</div>`,
+                barisan: () => `
+                    <div class="field"><label>Jenis</label><select id="f-jenis"><option value="aritmetika">Aritmetika</option><option value="geometri">Geometri</option></select></div>
+                    <div class="field"><label>a awal</label><input type="number" step="any" id="f-a" placeholder="1"></div>
+                    <div class="field"><label>b / r</label><input type="number" step="any" id="f-b" placeholder="2"></div>
+                    <div class="field"><label>n</label><input type="number" id="f-n" placeholder="5"></div>
+                    <button class="btn-calc" onclick="hitung('barisan')">Hitung</button>
+                    <div class="out" id="out">Suku ke-n dan jumlah n suku.</div>`,
+                trigonometri: () => `
+                    <div class="field"><label>Sudut (°)</label><input type="number" step="any" id="f-sudut" placeholder="30"></div>
+                    <button class="btn-calc" onclick="hitung('trigonometri')">Hitung</button>
+                    <div class="out" id="out">sin, cos, tan dalam derajat.</div>`,
+                dimtiga: () => `
+                    <div class="field"><label>Bangun</label><select id="f-jenis">
+                        <option value="kubus">Kubus (s)</option>
+                        <option value="balok">Balok (p,l,t)</option>
+                        <option value="bola">Bola (r)</option>
+                        <option value="tabung">Tabung (r,t)</option>
+                        <option value="kerucut">Kerucut (r,t)</option>
+                    </select></div>
+                    <div class="field"><label>Dimensi 1</label><input type="number" step="any" id="f-d1"></div>
+                    <div class="field"><label>Dimensi 2</label><input type="number" step="any" id="f-d2"></div>
+                    <div class="field"><label>Dimensi 3</label><input type="number" step="any" id="f-d3"></div>
+                    <button class="btn-calc" onclick="hitung('dimtiga')">Hitung</button>
+                    <div class="out" id="out">Volume dan luas permukaan.</div>`,
+                statlanjut: () => `
+                    <div class="field"><label>Data</label><input type="text" id="f-data" placeholder="3,5,7,5,9"></div>
+                    <button class="btn-calc" onclick="hitung('statlanjut')">Hitung</button>
+                    <div class="out" id="out">Mean, median, simpangan baku.</div>`,
+                peluang: () => `
+                    <div class="field"><label>n</label><input type="number" id="f-n" placeholder="5"></div>
+                    <div class="field"><label>r</label><input type="number" id="f-r" placeholder="2"></div>
+                    <button class="btn-calc" onclick="hitung('peluang')">Hitung</button>
+                    <div class="out" id="out">Permutasi dan kombinasi.</div>`,
+                limit: () => `
+                    <div class="field"><label>a (ax+b)</label><input type="number" step="any" id="f-a" placeholder="2"></div>
+                    <div class="field"><label>b</label><input type="number" step="any" id="f-b" placeholder="3"></div>
+                    <div class="field"><label>x →</label><input type="number" step="any" id="f-x" placeholder="1"></div>
+                    <button class="btn-calc" onclick="hitung('limit')">Hitung Limit</button>
+                    <div class="out" id="out">Limit substitusi langsung.</div>`,
+                turunan: () => `
+                    <div class="field"><label>a</label><input type="number" step="any" id="f-a" placeholder="2"></div>
+                    <div class="field"><label>n</label><input type="number" step="any" id="f-n" placeholder="3"></div>
+                    <div class="field"><label>b</label><input type="number" step="any" id="f-b" placeholder="1"></div>
+                    <div class="field"><label>x</label><input type="number" step="any" id="f-x" placeholder="2"></div>
+                    <button class="btn-calc" onclick="hitung('turunan')">Hitung Turunan</button>
+                    <div class="out" id="out">Turunan axⁿ + bx + c di titik x.</div>`,
+                integral: () => `
+                    <div class="field"><label>a</label><input type="number" step="any" id="f-a" placeholder="2"></div>
+                    <div class="field"><label>n</label><input type="number" step="any" id="f-n" placeholder="2"></div>
+                    <div class="field"><label>b</label><input type="number" step="any" id="f-b" placeholder="1"></div>
+                    <button class="btn-calc" onclick="hitung('integral')">Hitung Integral</button>
+                    <div class="out" id="out">∫(axⁿ + b) dx.</div>`,
+                proglinear: () => `
+                    <div class="field"><label>a, b</label><div class="field-row"><input type="number" step="any" id="f-a" placeholder="3"><input type="number" step="any" id="f-b" placeholder="2"></div></div>
+                    <div class="field"><label>Titik x, y</label><div class="field-row"><input type="number" step="any" id="f-x" placeholder="4"><input type="number" step="any" id="f-y" placeholder="5"></div></div>
+                    <button class="btn-calc" onclick="hitung('proglinear')">Hitung</button>
+                    <div class="out" id="out">Nilai f = ax + by di titik (x,y).</div>`,
+                vektor: () => `
+                    <div class="field"><label>A (x,y)</label><div class="field-row"><input type="number" step="any" id="f-ax" placeholder="1"><input type="number" step="any" id="f-ay" placeholder="2"></div></div>
+                    <div class="field"><label>B (x,y)</label><div class="field-row"><input type="number" step="any" id="f-bx" placeholder="3"><input type="number" step="any" id="f-by" placeholder="4"></div></div>
+                    <button class="btn-calc" onclick="hitung('vektor')">Hitung</button>
+                    <div class="out" id="out">Penjumlahan, dot product, panjang.</div>`,
+                transformasi: () => `
+                    <div class="field"><label>Titik x, y</label><div class="field-row"><input type="number" step="any" id="f-x" placeholder="2"><input type="number" step="any" id="f-y" placeholder="3"></div></div>
+                    <div class="field"><label>Translasi</label><div class="field-row"><input type="number" step="any" id="f-dx" placeholder="1"><input type="number" step="any" id="f-dy" placeholder="2"></div></div>
+                    <div class="field"><label>Rotasi (°)</label><input type="number" step="any" id="f-rot" placeholder="90"></div>
+                    <button class="btn-calc" onclick="hitung('transformasi')">Hitung</button>
+                    <div class="out" id="out">Translasi dan rotasi titik.</div>`,
+                kompinv: () => `
+                    <div class="field"><label>a, b (f)</label><div class="field-row"><input type="number" step="any" id="f-a" placeholder="2"><input type="number" step="any" id="f-b" placeholder="3"></div></div>
+                    <div class="field"><label>c, d (g)</label><div class="field-row"><input type="number" step="any" id="f-c" placeholder="4"><input type="number" step="any" id="f-d" placeholder="5"></div></div>
+                    <div class="field"><label>x</label><input type="number" step="any" id="f-x" placeholder="2"></div>
+                    <button class="btn-calc" onclick="hitung('kompinv')">Hitung</button>
+                    <div class="out" id="out">(f∘g)(x) dan f⁻¹(x).</div>`,
+                iriskerucut: () => `
+                    <div class="field"><label>Jari-jari r</label><input type="number" step="any" id="f-r" placeholder="5"></div>
+                    <button class="btn-calc" onclick="hitung('iriskerucut')">Hitung Lingkaran</button>
+                    <div class="out" id="out">Keliling dan luas lingkaran.</div>`,
+                polinomial: () => `
+                    <div class="field"><label>a,b,c,d</label><div class="field-row"><input type="number" step="any" id="f-a" placeholder="1"><input type="number" step="any" id="f-b" placeholder="0"><input type="number" step="any" id="f-c" placeholder="-2"><input type="number" step="any" id="f-d" placeholder="1"></div></div>
+                    <div class="field"><label>x</label><input type="number" step="any" id="f-x" placeholder="2"></div>
+                    <button class="btn-calc" onclick="hitung('polinomial')">Evaluasi</button>
+                    <div class="out" id="out">ax³ + bx² + cx + d.</div>`,
+                triglanjut: () => `
+                    <div class="field"><label>Sudut θ (°)</label><input type="number" step="any" id="f-sudut" placeholder="30"></div>
+                    <button class="btn-calc" onclick="hitung('triglanjut')">Hitung</button>
+                    <div class="out" id="out">sin(2θ), cos(2θ), tan(2θ).</div>`,
+                barisanlanjut: () => `
+                    <div class="field"><label>a awal</label><input type="number" step="any" id="f-a" placeholder="1"></div>
+                    <div class="field"><label>r (|r|&lt;1)</label><input type="number" step="any" id="f-r" placeholder="0.5"></div>
+                    <button class="btn-calc" onclick="hitung('barisanlanjut')">Hitung</button>
+                    <div class="out" id="out">Jumlah deret geometri tak hingga.</div>`,
+                kalkuluslanjut: () => `
+                    <div class="field"><label>a, b</label><div class="field-row"><input type="number" step="any" id="f-a" placeholder="2"><input type="number" step="any" id="f-b" placeholder="3"></div></div>
+                    <div class="field"><label>x, y</label><div class="field-row"><input type="number" step="any" id="f-x" placeholder="1"><input type="number" step="any" id="f-y" placeholder="2"></div></div>
+                    <button class="btn-calc" onclick="hitung('kalkuluslanjut')">Hitung</button>
+                    <div class="out" id="out">Turunan parsial f(x,y)=ax²+by².</div>`
+            };
+            return T[topic.id] ? T[topic.id]() : `<div class="empty-hint"><i class="fa-solid fa-calculator"></i>Topik ini belum memiliki form khusus.</div>`;
+        }
+
+        const H = {
+            bilangan: () => {
+                const a = parseFloat(document.getElementById('f-a').value);
+                const b = parseFloat(document.getElementById('f-b').value);
+                if (isNaN(a) || isNaN(b)) return err('Masukkan angka valid.');
+                out(`<strong>${a} + ${b} = ${a+b}</strong><br>${a} − ${b} = ${a-b}<br>${a} × ${b} = ${a*b}<br>${a} ÷ ${b} = ${b===0?'tak terdefinisi':fmt(a/b)}<br>${a} mod ${b} = ${a%b}<br>|${a}| = ${Math.abs(a)}, |${b}| = ${Math.abs(b)}`);
+            },
+            pecahan: () => {
+                const jenis = document.getElementById('f-jenis').value;
+                if (jenis === 'pecahan') {
+                    const n = parseFloat(document.getElementById('f-num').value);
+                    const d = parseFloat(document.getElementById('f-den').value);
+                    if (isNaN(n) || isNaN(d) || d === 0) return err('Pembilang/penyebut tidak valid.');
+                    const des = n/d;
+                    return out(`<strong>Pecahan: ${n}/${d}</strong><br>Desimal: ${fmt(des)}<br>Persen: ${(des*100).toFixed(4)}%`);
+                }
+                const v = parseFloat(document.getElementById('f-val').value);
+                if (isNaN(v)) return err('Masukkan nilai valid.');
+                if (jenis === 'desimal') out(`Desimal: <strong>${v}</strong><br>Persen: ${(v*100).toFixed(4)}%<br>Pecahan: ${v*1000}/1000`);
+                else out(`Persen: <strong>${v}%</strong><br>Desimal: ${v/100}<br>Pecahan: ${v}/100`);
+            },
+            kpkfpb: () => {
+                const a = parseInt(document.getElementById('f-a').value);
+                const b = parseInt(document.getElementById('f-b').value);
+                if (isNaN(a) || isNaN(b) || a <= 0 || b <= 0) return err('Masukkan bilangan bulat positif.');
+                out(`KPK(${a},${b}) = <strong>${lcm(a,b)}</strong><br>FPB(${a},${b}) = <strong>${gcd(a,b)}</strong>`);
+            },
+            pengukuran: () => {
+                const v = parseFloat(document.getElementById('f-val').value);
+                const kat = document.getElementById('f-kat').value;
+                const ke = document.getElementById('f-ke').value;
+                if (isNaN(v)) return err('Masukkan nilai valid.');
+                let hasil = 0, dari = '', keLabel = ke;
+                if (kat === 'panjang') {
+                    dari = 'm';
+                    const f = { km: 0.001, m: 1, cm: 100, mm: 1000 };
+                    hasil = v * (f[ke] || 1);
+                } else if (kat === 'berat') {
+                    dari = 'kg';
+                    const f = { kg: 1, g: 1000, mg: 1000000 };
+                    hasil = v * (f[ke] || 1);
+                } else if (kat === 'waktu') {
+                    dari = 'detik';
+                    const f = { jam: 1/3600, menit: 1/60, detik: 1 };
+                    hasil = v * (f[ke] || 1);
+                } else {
+                    dari = 'derajat';
+                    if (ke === 'rad') { hasil = d2r(v); keLabel = 'radian'; }
+                    else { hasil = v; keLabel = 'derajat'; }
+                }
+                out(`${v} ${dari} = <strong>${fmt(hasil)}</strong> ${keLabel}`);
+            },
+            bangun: () => {
+                const j = document.getElementById('f-jenis').value;
+                const d1 = parseFloat(document.getElementById('f-d1').value) || 0;
+                const d2 = parseFloat(document.getElementById('f-d2').value) || 0;
+                const d3 = parseFloat(document.getElementById('f-d3').value) || 0;
+                let r = '';
+                switch(j) {
+                    case 'persegi': r = `Luas = ${d1*d1}<br>Keliling = ${4*d1}`; break;
+                    case 'pp': r = `Luas = ${d1*d2}<br>Keliling = ${2*(d1+d2)}`; break;
+                    case 'segitiga': r = `Luas = ${0.5*d1*d2}`; break;
+                    case 'lingkaran': r = `Luas = ${(Math.PI*d1*d1).toFixed(4)}<br>Keliling = ${(2*Math.PI*d1).toFixed(4)}`; break;
+                    case 'kubus': r = `Volume = ${d1**3}<br>Luas permukaan = ${6*d1*d1}`; break;
+                    case 'balok': r = `Volume = ${d1*d2*d3}<br>Luas permukaan = ${2*(d1*d2+d1*d3+d2*d3)}`; break;
+                    case 'tabung': r = `Volume = ${(Math.PI*d1*d1*d2).toFixed(4)}<br>Luas permukaan = ${(2*Math.PI*d1*(d1+d2)).toFixed(4)}`; break;
+                }
+                out(r);
+            },
+            statdasar: () => {
+                const arr = parseData('f-data');
+                if (!arr.length) return err('Data tidak valid.');
+                const mean = arr.reduce((s,v)=>s+v,0)/arr.length;
+                const sorted = [...arr].sort((a,b)=>a-b);
+                const median = sorted.length%2===0 ? (sorted[sorted.length/2-1]+sorted[sorted.length/2])/2 : sorted[Math.floor(sorted.length/2)];
+                const freq = {}; arr.forEach(v=>freq[v]=(freq[v]||0)+1);
+                const maxF = Math.max(...Object.values(freq));
+                const modus = Object.keys(freq).filter(k=>freq[k]===maxF).join(', ');
+                out(`Mean = <strong>${mean.toFixed(4)}</strong><br>Median = <strong>${median}</strong><br>Modus = <strong>${modus}</strong>`);
+            },
+            pangkat: () => {
+                const b = parseFloat(document.getElementById('f-basis').value);
+                const e = parseFloat(document.getElementById('f-exp').value);
+                if (isNaN(b) || isNaN(e)) return err('Masukkan angka valid.');
+                out(`${b}^${e} = <strong>${fmt(Math.pow(b,e))}</strong>`);
+            },
+            akar: () => {
+                const v = parseFloat(document.getElementById('f-akar').value);
+                const n = parseFloat(document.getElementById('f-akarn').value);
+                if (isNaN(v) || isNaN(n) || n <= 0) return err('Masukkan nilai valid.');
+                let r;
+                if (n === 2) r = Math.sqrt(v);
+                else if (n === 3) r = Math.cbrt(v);
+                else r = Math.pow(v, 1/n);
+                out(`Akar pangkat ${n} dari ${v} = <strong>${fmt(r)}</strong>`);
+            },
+            aljabar: () => {
+                const a = parseFloat(document.getElementById('f-a').value);
+                const b = parseFloat(document.getElementById('f-b').value);
+                const c = parseFloat(document.getElementById('f-c').value);
+                if ([a,b,c].some(isNaN)) return err('Masukkan angka valid.');
+                if (a === 0) return out(b === c ? 'Tak hingga solusi' : 'Tidak ada solusi');
+                out(`${a}x + ${b} = ${c}<br>x = <strong>${fmt((c-b)/a)}</strong>`);
+            },
+            himpunan: () => {
+                const A = document.getElementById('f-a').value.split(',').map(s=>s.trim()).filter(Boolean);
+                const B = document.getElementById('f-b').value.split(',').map(s=>s.trim()).filter(Boolean);
+                const sA = new Set(A), sB = new Set(B);
+                const ir = [...sA].filter(x=>sB.has(x));
+                const gb = [...new Set([...A,...B])];
+                const sl = [...sA].filter(x=>!sB.has(x));
+                out(`A = {${A.join(', ')}}<br>B = {${B.join(', ')}}<br>A ∩ B = <strong>{${ir.join(', ')}}</strong><br>A ∪ B = <strong>{${gb.join(', ')}}</strong><br>A − B = {${sl.join(', ')}}`);
+            },
+            perbandingan: () => {
+                const a = parseFloat(document.getElementById('f-a').value);
+                const b = parseFloat(document.getElementById('f-b').value);
+                const c = parseFloat(document.getElementById('f-c').value);
+                if ([a,b,c].some(isNaN) || b === 0) return err('Masukkan angka valid.');
+                out(`${a} : ${b} = ${c} : <strong>${fmt(b*c/a)}</strong>`);
+            },
+            untung: () => {
+                const beli = parseFloat(document.getElementById('f-beli').value);
+                const jual = parseFloat(document.getElementById('f-jual').value);
+                if (isNaN(beli) || isNaN(jual)) return err('Masukkan angka valid.');
+                const s = jual - beli;
+                const p = (Math.abs(s)/beli*100).toFixed(2);
+                if (s > 0) out(`Untung = <strong>${s}</strong><br>Persentase = <strong>${p}%</strong>`);
+                else if (s < 0) out(`Rugi = <strong>${Math.abs(s)}</strong><br>Persentase = <strong>${p}%</strong>`);
+                else out('Tidak untung dan tidak rugi.');
+            },
+            bunga: () => {
+                const m = parseFloat(document.getElementById('f-modal').value);
+                const b = parseFloat(document.getElementById('f-bunga').value);
+                const t = parseFloat(document.getElementById('f-tahun').value);
+                if ([m,b,t].some(isNaN)) return err('Masukkan angka valid.');
+                const rp = m * (b/100) * t;
+                out(`Bunga = <strong>${fmt(rp)}</strong><br>Total = <strong>${fmt(m+rp)}</strong>`);
+            },
+            sudut: () => {
+                const d = parseFloat(document.getElementById('f-deg').value);
+                if (isNaN(d)) return err('Masukkan sudut.');
+                out(`${d}° = <strong>${d2r(d).toFixed(6)} rad</strong>`);
+            },
+            segitiga: () => {
+                const j = document.getElementById('f-jenis').value;
+                const d1 = parseFloat(document.getElementById('f-d1').value)||0;
+                const d2 = parseFloat(document.getElementById('f-d2').value)||0;
+                const d3 = parseFloat(document.getElementById('f-d3').value)||0;
+                let r = '';
+                switch(j) {
+                    case 'segitiga': r = `Luas = ${0.5*d1*d2}<br>Keliling = ${d1+d2+d3}`; break;
+                    case 'persegi': r = `Luas = ${d1*d1}<br>Keliling = ${4*d1}`; break;
+                    case 'pp': r = `Luas = ${d1*d2}<br>Keliling = ${2*(d1+d2)}`; break;
+                    case 'jajargenjang': r = `Luas = ${d1*d2}<br>Keliling = ${2*(d1+d3)}`; break;
+                }
+                out(r);
+            },
+            pythagoras: () => {
+                const a = parseFloat(document.getElementById('f-a').value);
+                const b = parseFloat(document.getElementById('f-b').value);
+                const cari = document.getElementById('f-cari').value;
+                if (cari === 'c') {
+                    if (isNaN(a) || isNaN(b)) return err('Masukkan a dan b.');
+                    out(`c = √(${a}²+${b}²) = <strong>${fmt(Math.sqrt(a*a+b*b))}</strong>`);
+                } else if (cari === 'a') {
+                    if (isNaN(a) || isNaN(b)) return err('Isi a sebagai c dan b sebagai sisi tegak.');
+                    out(`a = √(${b}²−${a}²) = <strong>${fmt(Math.sqrt(b*b-a*a))}</strong>`);
+                } else {
+                    if (isNaN(a) || isNaN(b)) return err('Isi a sebagai c dan b sebagai sisi tegak.');
+                    out(`b = √(${a}²−${b}²) = <strong>${fmt(Math.sqrt(a*a-b*b))}</strong>`);
+                }
+            },
+            relasifungsi: () => {
+                const a = parseFloat(document.getElementById('f-a').value);
+                const b = parseFloat(document.getElementById('f-b').value);
+                const x = parseFloat(document.getElementById('f-x').value);
+                if ([a,b,x].some(isNaN)) return err('Masukkan angka valid.');
+                out(`f(x) = ${a}x + ${b}<br>f(${x}) = <strong>${fmt(a*x+b)}</strong>`);
+            },
+            persgaris: () => {
+                const x1=parseFloat(document.getElementById('f-x1').value), y1=parseFloat(document.getElementById('f-y1').value);
+                const x2=parseFloat(document.getElementById('f-x2').value), y2=parseFloat(document.getElementById('f-y2').value);
+                if ([x1,y1,x2,y2].some(isNaN)) return err('Masukkan koordinat valid.');
+                if (x2 === x1) return out(`Garis vertikal x = ${x1}`);
+                const m = (y2-y1)/(x2-x1);
+                const b = y1 - m*x1;
+                out(`Gradien m = <strong>${fmt(m)}</strong><br>y = ${fmt(m)}x + ${fmt(b)}`);
+            },
+            spldv: () => {
+                const a1=parseFloat(document.getElementById('f-a1').value), b1=parseFloat(document.getElementById('f-b1').value), c1=parseFloat(document.getElementById('f-c1').value);
+                const a2=parseFloat(document.getElementById('f-a2').value), b2=parseFloat(document.getElementById('f-b2').value), c2=parseFloat(document.getElementById('f-c2').value);
+                if ([a1,b1,c1,a2,b2,c2].some(isNaN)) return err('Masukkan koefisien valid.');
+                const D = a1*b2 - a2*b1;
+                if (D === 0) return err('Determinan 0, tidak ada solusi unik.');
+                out(`x = <strong>${fmt((c1*b2-c2*b1)/D)}</strong><br>y = <strong>${fmt((a1*c2-a2*c1)/D)}</strong>`);
+            },
+            peluangdasar: () => {
+                const n = parseFloat(document.getElementById('f-n').value);
+                const t = parseFloat(document.getElementById('f-total').value);
+                if (isNaN(n) || isNaN(t) || t === 0) return err('Masukkan angka valid.');
+                out(`Peluang = <strong>${fmt(n/t)}</strong> (${(n/t*100).toFixed(2)}%)`);
+            },
+            log: () => {
+                const v = parseFloat(document.getElementById('f-val').value);
+                const b = parseFloat(document.getElementById('f-base').value);
+                if (isNaN(v) || isNaN(b) || v <= 0 || b <= 0 || b === 1) return err('Val>0, base>0, base≠1.');
+                out(`log<sub>${b}</sub>(${v}) = <strong>${(Math.log(v)/Math.log(b)).toFixed(6)}</strong>`);
+            },
+            eksponen: () => {
+                const b = parseFloat(document.getElementById('f-ebase').value);
+                const p = parseFloat(document.getElementById('f-epow').value);
+                if (isNaN(b) || isNaN(p)) return err('Masukkan angka valid.');
+                out(`${b}^${p} = <strong>${fmt(Math.pow(b,p))}</strong>`);
+            },
+            kuadrat: () => {
+                const a=parseFloat(document.getElementById('f-a').value), b=parseFloat(document.getElementById('f-b').value), c=parseFloat(document.getElementById('f-c').value);
+                if ([a,b,c].some(isNaN) || a === 0) return err('a≠0, masukkan angka valid.');
+                const D = b*b-4*a*c;
+                let s = `D = <strong>${D}</strong><br>`;
+                if (D > 0) s += `x₁ = <strong>${fmt((-b+Math.sqrt(D))/(2*a))}</strong><br>x₂ = <strong>${fmt((-b-Math.sqrt(D))/(2*a))}</strong>`;
+                else if (D === 0) s += `x = <strong>${fmt(-b/(2*a))}</strong> (kembar)`;
+                else s += `x = <strong>${fmt(-b/(2*a))} ± ${fmt(Math.sqrt(-D)/(2*a))}i</strong>`;
+                out(s);
+            },
+            fungsikuadrat: () => {
+                const a=parseFloat(document.getElementById('f-a').value), b=parseFloat(document.getElementById('f-b').value), c=parseFloat(document.getElementById('f-c').value);
+                const x=parseFloat(document.getElementById('f-x').value);
+                if ([a,b,c,x].some(isNaN)) return err('Masukkan angka valid.');
+                const xp = -b/(2*a), yp = a*xp*xp+b*xp+c;
+                out(`f(${x}) = <strong>${fmt(a*x*x+b*x+c)}</strong><br>Titik puncak = (${fmt(xp)}, ${fmt(yp)})`);
+            },
+            matriks: () => {
+                const a=parseFloat(document.getElementById('f-a').value), b=parseFloat(document.getElementById('f-b').value);
+                const c=parseFloat(document.getElementById('f-c').value), d=parseFloat(document.getElementById('f-d').value);
+                if ([a,b,c,d].some(isNaN)) return err('Masukkan elemen matriks.');
+                const det = a*d-b*c;
+                let inv = det === 0 ? 'Matriks singular' : `Invers = [[${fmt(d/det)}, ${fmt(-b/det)}], [${fmt(-c/det)}, ${fmt(a/det)}]]`;
+                out(`Determinan = <strong>${det}</strong><br>${inv}`);
+            },
+            barisan: () => {
+                const jenis = document.getElementById('f-jenis').value;
+                const a = parseFloat(document.getElementById('f-a').value);
+                const b = parseFloat(document.getElementById('f-b').value);
+                const n = parseInt(document.getElementById('f-n').value);
+                if ([a,b,n].some(isNaN) || n < 1) return err('n≥1, masukkan angka valid.');
+                let un, sn;
+                if (jenis === 'aritmetika') { un = a + (n-1)*b; sn = n/2*(2*a+(n-1)*b); }
+                else { un = a*Math.pow(b,n-1); sn = b===1 ? a*n : a*(Math.pow(b,n)-1)/(b-1); }
+                out(`Suku ke-${n} = <strong>${fmt(un)}</strong><br>Jumlah ${n} suku = <strong>${fmt(sn)}</strong>`);
+            },
+            trigonometri: () => {
+                const s = parseFloat(document.getElementById('f-sudut').value);
+                if (isNaN(s)) return err('Masukkan sudut.');
+                const r = d2r(s);
+                out(`sin(${s}°) = <strong>${Math.sin(r).toFixed(6)}</strong><br>cos(${s}°) = <strong>${Math.cos(r).toFixed(6)}</strong><br>tan(${s}°) = <strong>${Math.tan(r).toFixed(6)}</strong>`);
+            },
+            dimtiga: () => {
+                const j = document.getElementById('f-jenis').value;
+                const d1 = parseFloat(document.getElementById('f-d1').value)||0;
+                const d2 = parseFloat(document.getElementById('f-d2').value)||0;
+                const d3 = parseFloat(document.getElementById('f-d3').value)||0;
+                let r = '';
+                switch(j) {
+                    case 'kubus': r = `Volume = ${d1**3}<br>Luas = ${6*d1*d1}`; break;
+                    case 'balok': r = `Volume = ${d1*d2*d3}<br>Luas = ${2*(d1*d2+d1*d3+d2*d3)}`; break;
+                    case 'bola': r = `Volume = ${(4/3*Math.PI*d1**3).toFixed(4)}<br>Luas = ${(4*Math.PI*d1*d1).toFixed(4)}`; break;
+                    case 'tabung': r = `Volume = ${(Math.PI*d1*d1*d2).toFixed(4)}<br>Luas = ${(2*Math.PI*d1*(d1+d2)).toFixed(4)}`; break;
+                    case 'kerucut': r = `Volume = ${(1/3*Math.PI*d1*d1*d2).toFixed(4)}<br>Luas selimut = ${(Math.PI*d1*Math.sqrt(d1*d1+d2*d2)).toFixed(4)}`; break;
+                }
+                out(r);
+            },
+            statlanjut: () => {
+                const arr = parseData('f-data');
+                if (!arr.length) return err('Data tidak valid.');
+                const n = arr.length;
+                const mean = arr.reduce((s,v)=>s+v,0)/n;
+                const variance = arr.reduce((s,v)=>s+(v-mean)**2,0)/n;
+                const std = Math.sqrt(variance);
+                const sorted = [...arr].sort((a,b)=>a-b);
+                const median = n%2===0 ? (sorted[n/2-1]+sorted[n/2])/2 : sorted[Math.floor(n/2)];
+                out(`Mean = ${mean.toFixed(4)}<br>Median = ${median}<br>Simpangan baku = <strong>${std.toFixed(4)}</strong><br>Variansi = ${variance.toFixed(4)}`);
+            },
+            peluang: () => {
+                const n = parseInt(document.getElementById('f-n').value);
+                const r = parseInt(document.getElementById('f-r').value);
+                if (isNaN(n) || isNaN(r) || n < 0 || r < 0 || r > n) return err('0≤r≤n.');
+                const p = fact(n)/fact(n-r);
+                const c = fact(n)/(fact(r)*fact(n-r));
+                out(`P(${n},${r}) = <strong>${p}</strong><br>C(${n},${r}) = <strong>${c}</strong>`);
+            },
+            limit: () => {
+                const a=parseFloat(document.getElementById('f-a').value), b=parseFloat(document.getElementById('f-b').value);
+                const x=parseFloat(document.getElementById('f-x').value);
+                if ([a,b,x].some(isNaN)) return err('Masukkan angka valid.');
+                out(`lim<sub>x→${x}</sub> (${a}x + ${b}) = <strong>${fmt(a*x+b)}</strong>`);
+            },
+            turunan: () => {
+                const a=parseFloat(document.getElementById('f-a').value), n=parseFloat(document.getElementById('f-n').value);
+                const b=parseFloat(document.getElementById('f-b').value), x=parseFloat(document.getElementById('f-x').value);
+                if ([a,n,b,x].some(isNaN)) return err('Masukkan angka valid.');
+                const tur = a*n*Math.pow(x,n-1) + b;
+                out(`f'(x) = ${a*n}x<sup>${n-1}</sup> + ${b}<br>f'(${x}) = <strong>${fmt(tur)}</strong>`);
+            },
+            integral: () => {
+                const a=parseFloat(document.getElementById('f-a').value), n=parseFloat(document.getElementById('f-n').value);
+                const b=parseFloat(document.getElementById('f-b').value);
+                if ([a,n,b].some(isNaN) || n === -1) return err('n≠−1, masukkan angka valid.');
+                out(`∫(${a}x<sup>${n}</sup> + ${b}) dx = <strong>${fmt(a/(n+1))}x<sup>${n+1}</sup> + ${b}x + C</strong>`);
+            },
+            proglinear: () => {
+                const a=parseFloat(document.getElementById('f-a').value), b=parseFloat(document.getElementById('f-b').value);
+                const x=parseFloat(document.getElementById('f-x').value), y=parseFloat(document.getElementById('f-y').value);
+                if ([a,b,x,y].some(isNaN)) return err('Masukkan angka valid.');
+                out(`f(x,y) = ${a}x + ${b}y<br>f(${x},${y}) = <strong>${fmt(a*x+b*y)}</strong>`);
+            },
+            vektor: () => {
+                const ax=parseFloat(document.getElementById('f-ax').value), ay=parseFloat(document.getElementById('f-ay').value);
+                const bx=parseFloat(document.getElementById('f-bx').value), by=parseFloat(document.getElementById('f-by').value);
+                if ([ax,ay,bx,by].some(isNaN)) return err('Masukkan komponen vektor.');
+                out(`A + B = (${ax+bx}, ${ay+by})<br>A · B = <strong>${fmt(ax*bx+ay*by)}</strong><br>|A| = ${fmt(Math.sqrt(ax*ax+ay*ay))}`);
+            },
+            transformasi: () => {
+                const x=parseFloat(document.getElementById('f-x').value), y=parseFloat(document.getElementById('f-y').value);
+                const dx=parseFloat(document.getElementById('f-dx').value), dy=parseFloat(document.getElementById('f-dy').value);
+                const rot=parseFloat(document.getElementById('f-rot').value);
+                if ([x,y,dx,dy,rot].some(isNaN)) return err('Masukkan angka valid.');
+                const tx = x+dx, ty = y+dy;
+                const rad = d2r(rot);
+                const rx = tx*Math.cos(rad) - ty*Math.sin(rad);
+                const ry = tx*Math.sin(rad) + ty*Math.cos(rad);
+                out(`Translasi: (${fmt(tx)}, ${fmt(ty)})<br>Rotasi ${rot}°: (<strong>${fmt(rx)}, ${fmt(ry)}</strong>)`);
+            },
+            kompinv: () => {
+                const a=parseFloat(document.getElementById('f-a').value), b=parseFloat(document.getElementById('f-b').value);
+                const c=parseFloat(document.getElementById('f-c').value), d=parseFloat(document.getElementById('f-d').value);
+                const x=parseFloat(document.getElementById('f-x').value);
+                if ([a,b,c,d,x].some(isNaN) || a === 0) return err('a≠0, masukkan angka valid.');
+                const fg = a*(c*x+d)+b;
+                const invf = (x-b)/a;
+                out(`(f∘g)(x) = <strong>${a*c}x + ${a*d+b}</strong><br>(f∘g)(${x}) = <strong>${fmt(fg)}</strong><br>f⁻¹(${x}) = <strong>${fmt(invf)}</strong>`);
+            },
+            iriskerucut: () => {
+                const r = parseFloat(document.getElementById('f-r').value);
+                if (isNaN(r) || r <= 0) return err('r>0.');
+                out(`Keliling = <strong>${(2*Math.PI*r).toFixed(4)}</strong><br>Luas = <strong>${(Math.PI*r*r).toFixed(4)}</strong>`);
+            },
+            polinomial: () => {
+                const a=parseFloat(document.getElementById('f-a').value), b=parseFloat(document.getElementById('f-b').value);
+                const c=parseFloat(document.getElementById('f-c').value), d=parseFloat(document.getElementById('f-d').value);
+                const x=parseFloat(document.getElementById('f-x').value);
+                if ([a,b,c,d,x].some(isNaN)) return err('Masukkan angka valid.');
+                out(`P(${x}) = <strong>${fmt(a*x**3+b*x**2+c*x+d)}</strong>`);
+            },
+            triglanjut: () => {
+                const s = parseFloat(document.getElementById('f-sudut').value);
+                if (isNaN(s)) return err('Masukkan sudut.');
+                const r = d2r(s);
+                out(`sin(2θ) = <strong>${Math.sin(2*r).toFixed(6)}</strong><br>cos(2θ) = <strong>${Math.cos(2*r).toFixed(6)}</strong><br>tan(2θ) = <strong>${Math.tan(2*r).toFixed(6)}</strong>`);
+            },
+            barisanlanjut: () => {
+                const a=parseFloat(document.getElementById('f-a').value), r=parseFloat(document.getElementById('f-r').value);
+                if (isNaN(a) || isNaN(r) || Math.abs(r) >= 1) return err('|r|<1, masukkan angka valid.');
+                out(`Jumlah tak hingga = <strong>${fmt(a/(1-r))}</strong>`);
+            },
+            kalkuluslanjut: () => {
+                const a=parseFloat(document.getElementById('f-a').value), b=parseFloat(document.getElementById('f-b').value);
+                const x=parseFloat(document.getElementById('f-x').value), y=parseFloat(document.getElementById('f-y').value);
+                if ([a,b,x,y].some(isNaN)) return err('Masukkan angka valid.');
+                out(`f(x,y) = ${a}x² + ${b}y²<br>∂f/∂x = <strong>${fmt(2*a*x)}</strong><br>∂f/∂y = <strong>${fmt(2*b*y)}</strong>`);
+            }
+        };
+
+        function out(html) {
+            const el = document.getElementById('out');
+            if (el) { el.className = 'out'; el.innerHTML = html; }
+        }
+        function err(msg) {
+            const el = document.getElementById('out');
+            if (el) { el.className = 'out err'; el.textContent = msg; }
+        }
+        function parseData(id) {
+            const raw = document.getElementById(id).value || '';
+            return raw.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+        }
+
+        window.hitung = function(key) { if (H[key]) H[key](); };
+
+        const gridEl = document.getElementById('topicGrid');
+        const calcEl = document.getElementById('topicCalc');
+        const searchEl = document.getElementById('searchTopic');
+        let activeId = null;
+
+        function renderGrid(filter = '') {
+            const q = filter.toLowerCase();
+            const list = TOPICS.filter(t =>
+                t.title.toLowerCase().includes(q) || t.desc.toLowerCase().includes(q)
+            );
+            if (!list.length) {
+                gridEl.innerHTML = `<div class="empty-hint" style="grid-column:1/-1;"><i class="fa-solid fa-magnifying-glass"></i>Tidak ada topik yang cocok.</div>`;
+                return;
+            }
+            gridEl.innerHTML = list.map(t => {
+                const idx = TOPICS.indexOf(t) + 1;
+                return `<button class="topic-item ${t.id === activeId ? 'active' : ''}" data-id="${t.id}">
+                    <span class="num">${String(idx).padStart(2,'0')}</span>
+                    <span>${t.title}</span>
+                </button>`;
+            }).join('');
+        }
+
+        function renderCalc(id) {
+            activeId = id;
+            const t = TOPICS.find(x => x.id === id);
+            if (!t) { calcEl.innerHTML = ''; return; }
+            calcEl.innerHTML = `<div class="topic-calc">
+                <h3>${t.title}</h3>
+                <div class="desc">${t.desc}</div>
+                ${form(t)}
+            </div>`;
+            renderGrid(searchEl.value);
+        }
+
+        gridEl.addEventListener('click', e => {
+            const btn = e.target.closest('.topic-item');
+            if (btn && btn.dataset.id) renderCalc(btn.dataset.id);
+        });
+
+        searchEl.addEventListener('input', () => renderGrid(searchEl.value));
+
+        const toggleBtn = document.getElementById('toggleAdvanced');
+        const panel = document.getElementById('advancedPanel');
+        toggleBtn.addEventListener('click', () => {
+            const isOpen = panel.classList.toggle('open');
+            toggleBtn.classList.toggle('open', isOpen);
+            if (isOpen && !activeId) renderCalc(TOPICS[0].id);
+        });
+
+        renderGrid();
+    })();
+    </script>
+</body>
+</html>
